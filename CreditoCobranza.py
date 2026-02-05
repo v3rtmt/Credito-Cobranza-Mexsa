@@ -248,8 +248,18 @@ class newApp:
             # =========================
             # Exportación
             # =========================
-            exportar_excel(registros, path_datos, archivo_general)
-            generar_archivos_por_ruta(archivo_general, carpeta, fecha_str)
+            exportar_excel(
+                registros,
+                path_datos,
+                archivo_general
+            )
+
+            generar_archivos_por_ruta(
+                registros,
+                path_datos,
+                carpeta,
+                fecha_str
+            )
 
         except Exception as e:
             print(f"Error: {e}")

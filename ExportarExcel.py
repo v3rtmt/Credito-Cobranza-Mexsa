@@ -159,21 +159,22 @@ def escribir_hoja_ruta(hoja, registros):
         fila = fila_inicio + idx
 
         hoja.cell(row=fila, column=1, value=r['factura'])
-        hoja.cell(row=fila, column=2, value=r['cliente'])
-        hoja.cell(row=fila, column=3, value=r['negocio'])
+        hoja.cell(row=fila, column=2, value=r['id_cliente'])   # 🆕 ID CLIENTE
+        hoja.cell(row=fila, column=3, value=r['cliente'])
+        hoja.cell(row=fila, column=4, value=r['negocio'])
 
-        celda_fecha = hoja.cell(row=fila, column=4, value=r['fecha'])
+        celda_fecha = hoja.cell(row=fila, column=5, value=r['fecha'])
         celda_fecha.number_format = 'DD/MM/YYYY'
 
-        hoja.cell(row=fila, column=5, value=r['antiguedad'])
+        hoja.cell(row=fila, column=6, value=r['antiguedad'])
 
-        celda_total = hoja.cell(row=fila, column=6, value=r['total'])
+        celda_total = hoja.cell(row=fila, column=7, value=r['total'])
         celda_total.number_format = numbers.FORMAT_CURRENCY_USD_SIMPLE
 
-        hoja.cell(row=fila, column=7, value=r['tipo_pago'])
-        hoja.cell(row=fila, column=8, value=r['dia'])
-        hoja.cell(row=fila, column=9, value=r['fisico'])
-        hoja.cell(row=fila, column=10, value=r['comentarios'])
+        hoja.cell(row=fila, column=8, value=r['tipo_pago'])
+        hoja.cell(row=fila, column=9, value=r['dia'])
+        hoja.cell(row=fila, column=10, value=r['fisico'])
+        hoja.cell(row=fila, column=11, value=r['comentarios'])
 
 
 # ==================================================
@@ -196,21 +197,39 @@ def escribir_resumen_ruta(hoja, resumen):
 # ==================================================
 # Generación de archivos individuales por ruta
 # ==================================================
-def generar_archivos_por_ruta(archivo_general, carpeta_salida, fecha_str):
+def generar_archivos_por_ruta(
+    registros,
+    plantilla_path,
+    carpeta_salida,
+    fecha_str
+):
     """
-    Genera un archivo Excel por cada ruta,
-    conservando únicamente su hoja correspondiente.
+    Genera un archivo por ruta DESDE LA PLANTILLA.
+    Nunca copia ni mutila un archivo existente.
     """
 
-    for ruta in ORDEN_RUTAS:
+    rutas = {r['ruta'] for r in registros if r['ruta']}
+
+    for ruta in rutas:
         nombre = f"Antigüedad {ruta} al {fecha_str}.xlsx"
         destino = os.path.join(carpeta_salida, nombre)
 
-        shutil.copy(archivo_general, destino)
+        registros_ruta = [
+            r for r in registros if r['ruta'] == ruta
+        ]
+
+        exportar_excel(
+            registros_ruta,
+            plantilla_path,
+            destino
+        )
+        
         wb = load_workbook(destino)
 
         for hoja in wb.sheetnames:
-            if hoja != str(ruta):
-                wb.remove(wb[hoja])
+            if hoja == str(ruta):
+                wb[hoja].sheet_state = 'visible'
+            else:
+                wb[hoja].sheet_state = 'hidden'
 
         wb.save(destino)
